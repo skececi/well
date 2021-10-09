@@ -10,9 +10,10 @@ import * as React from 'react';
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
-import TabOneScreen from '../screens/TabOneScreen';
-import TabTwoScreen from '../screens/TabTwoScreen';
-import { BottomTabParamList, TabOneParamList, TabTwoParamList } from '../types';
+import ProfileScreen from '../screens/ProfileScreen';
+import MainScreen from '../screens/MainScreen';
+import { BottomTabParamList, ProfileTabParamList, MainTabParamList, HistoryTabParamList } from '../types';
+import HistoryScreen from "../screens/HistoryScreen";
 
 const BottomTab = createBottomTabNavigator<BottomTabParamList>();
 
@@ -21,18 +22,25 @@ export default function BottomTabNavigator() {
 
   return (
     <BottomTab.Navigator
-      initialRouteName="TabOne"
+      initialRouteName="MainTab"
       tabBarOptions={{ activeTintColor: Colors[colorScheme].tint }}>
       <BottomTab.Screen
-        name="TabOne"
-        component={TabOneNavigator}
+        name="Profile Tab"
+        component={ProfileTabNavigator}
         options={{
           tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
         }}
       />
       <BottomTab.Screen
-        name="TabTwo"
-        component={TabTwoNavigator}
+        name="MainTab"
+        component={MainTabNavigator}
+        options={{
+          tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
+        }}
+      />
+      <BottomTab.Screen
+        name="HistoryTab"
+        component={HistoryTabNavigator}
         options={{
           tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
         }}
@@ -49,30 +57,44 @@ function TabBarIcon(props: { name: React.ComponentProps<typeof Ionicons>['name']
 
 // Each tab has its own navigation stack, you can read more about this pattern here:
 // https://reactnavigation.org/docs/tab-based-navigation#a-stack-navigator-for-each-tab
-const TabOneStack = createStackNavigator<TabOneParamList>();
+const ProfileStack = createStackNavigator<ProfileTabParamList>();
 
-function TabOneNavigator() {
+function ProfileTabNavigator() {
   return (
-    <TabOneStack.Navigator>
-      <TabOneStack.Screen
-        name="TabOneScreen"
-        component={TabOneScreen}
-        options={{ headerTitle: 'Tab One Title' }}
+    <ProfileStack.Navigator>
+      <ProfileStack.Screen
+        name="ProfileScreen"
+        component={ProfileScreen}
+        options={{ headerTitle: 'Profile/Settings' }}
       />
-    </TabOneStack.Navigator>
+    </ProfileStack.Navigator>
   );
 }
 
-const TabTwoStack = createStackNavigator<TabTwoParamList>();
+const MainTabStack = createStackNavigator<MainTabParamList>();
 
-function TabTwoNavigator() {
+function MainTabNavigator() {
   return (
-    <TabTwoStack.Navigator>
-      <TabTwoStack.Screen
-        name="TabTwoScreen"
-        component={TabTwoScreen}
-        options={{ headerTitle: 'Tab Two Title' }}
+    <MainTabStack.Navigator>
+      <MainTabStack.Screen
+        name="MainScreen"
+        component={MainScreen}
+        options={{ headerTitle: 'Main Tab' }}
       />
-    </TabTwoStack.Navigator>
+    </MainTabStack.Navigator>
+  );
+}
+
+const HistoryTabStack = createStackNavigator<HistoryTabParamList>();
+
+function HistoryTabNavigator() {
+  return (
+    <HistoryTabStack.Navigator>
+      <HistoryTabStack.Screen
+        name="HistoryScreen"
+        component={HistoryScreen}
+        options={{ headerTitle: 'History' }}
+      />
+    </HistoryTabStack.Navigator>
   );
 }

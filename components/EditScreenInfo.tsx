@@ -6,6 +6,7 @@ import Colors from '../constants/Colors';
 import { MonoText } from './StyledText';
 import { Text, View } from './Themed';
 
+// TODO - delete
 export default function EditScreenInfo({ path }: { path: string }) {
   return (
     <View>
