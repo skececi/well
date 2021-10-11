@@ -6,7 +6,8 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 
 import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import useStoredTaskList from "../hooks/useStoredTaskList";
 
 const styles = StyleSheet.create({
   container: {
@@ -27,41 +28,64 @@ const styles = StyleSheet.create({
 
 // TODO- make everything enums (+ custom string option)
 export type Task = {
+  id: number;
   taskTitle: string;
   taskCategory: string;
-  lastCompleted?: Date;
 };
 
-// Map of Date -> Task (completed)
-// Map of Date -> Journal entry
-// Map of Date -> Num tasks?
+export type TaskEntry = {
+  task: Task;
+  date: Date;
+}
+
+export type JournalEntry = {
+  message: string;
+  date: Date;
+}
+
+export enum Mood {
+  "happy",
+  "content",
+  "sad",
+  "stressed",
+}
+
+export type MoodEntry = {
+  mood: Mood;
+  date: Date;
+}
+
+
 
 const meditationTask: Task = {
+  id: 1,
   taskTitle: "Meditate 5 minutes",
   taskCategory: "Mental Health",
 };
 
 const exerciseTask: Task = {
+  id: 2,
   taskTitle: "Exercise 15 minutes",
   taskCategory: "Physical Health",
 };
 
-export default function MainScreen() {
-  const [taskList, setTaskList] = React.useState([]);
-  // TODO- load state from some storage (look into local storage- account based)
-  // TODO- handling of completion
-  async function storeTaskList(taskList: Task[]) {
-    try {
-      await AsyncStorage.setItem('@task_list', JSON.stringify(taskList));
-    } catch (e) {
-      // saving error
-      console.error("saving error");
-    }
-  }
+const exampleTasks: Task[] = [meditationTask, exerciseTask];
 
+export default function MainScreen() {
+  const [taskList, setTaskList] = useStoredTaskList();
+
+
+  const [lastCompleted, setLastCompleted] = useState(new Map<number, Date>());
+
+  // Map of Date -> TaskID : Completed?
+  // List of journal entries (
+
+  // TODO- handling of completion of tasks - writing back to the datastructure
   // TODO- have the date cutoff be dynamic and flexible
+
+  // https://stackoverflow.com/questions/49477547/setstate-of-an-array-of-objects-in-react
   function setCompleted(task: Task) {
-    task.lastCompleted = new Date();
+    setTaskList()
   }
 
   useEffect(() => {
@@ -70,7 +94,7 @@ export default function MainScreen() {
 
 
   const dailyTasks: Task[] = [meditationTask, exerciseTask];
-  const tasksButtons = dailyTasks.map((task, index) => {
+  const tasksButtons = dailyTasks.map((task) => {
     return (
       <TouchableOpacity
         style={{
@@ -80,7 +104,7 @@ export default function MainScreen() {
           paddingVertical: 10,
           paddingHorizontal: 12
         }}
-        key={index}
+        key={task.id}
         onPress={() => {
           setCompleted(task);
           Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
