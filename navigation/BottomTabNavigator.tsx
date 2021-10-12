@@ -12,7 +12,7 @@ import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 import ProfileScreen from '../screens/ProfileScreen';
 import MainScreen from '../screens/MainScreen';
-import { BottomTabParamList, ProfileTabParamList, MainTabParamList, HistoryTabParamList } from '../types';
+import { BottomTabParamList, ProfileTabParamList, MainTabParamList, HistoryTabParamList } from '../types/types';
 import HistoryScreen from "../screens/HistoryScreen";
 
 const BottomTab = createBottomTabNavigator<BottomTabParamList>();

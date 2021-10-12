@@ -7,7 +7,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import EditScreenInfo from '../components/EditScreenInfo';
 import { Text, View } from '../components/Themed';
 import { useEffect, useState } from "react";
-import useStoredTaskList from "../hooks/useStoredTaskList";
+import useTasks, { ActionType } from "../hooks/useTasks";
 
 const styles = StyleSheet.create({
   container: {
@@ -33,67 +33,57 @@ export type Task = {
   taskCategory: string;
 };
 
-export type TaskEntry = {
-  task: Task;
-  date: Date;
-}
-
-export type JournalEntry = {
+export type Journal = {
   message: string;
-  date: Date;
 }
 
 export enum Mood {
-  "happy",
-  "content",
-  "sad",
-  "stressed",
+  happy = "Happy",
+  content = "Content",
+  sad = "Sad",
+  stressed = "Stressed",
 }
 
-export type MoodEntry = {
-  mood: Mood;
+// TODO move this into better place when ready
+export type CompletionEntry = {
+  entry: Task | Journal | Mood;
   date: Date;
 }
 
 
 
-const meditationTask: Task = {
-  id: 1,
-  taskTitle: "Meditate 5 minutes",
-  taskCategory: "Mental Health",
-};
-
-const exerciseTask: Task = {
-  id: 2,
-  taskTitle: "Exercise 15 minutes",
-  taskCategory: "Physical Health",
-};
-
-const exampleTasks: Task[] = [meditationTask, exerciseTask];
-
 export default function MainScreen() {
-  const [taskList, setTaskList] = useStoredTaskList();
-
-
-  const [lastCompleted, setLastCompleted] = useState(new Map<number, Date>());
-
-  // Map of Date -> TaskID : Completed?
-  // List of journal entries (
+  const [state, dispatch] = useTasks();
 
   // TODO- handling of completion of tasks - writing back to the datastructure
-  // TODO- have the date cutoff be dynamic and flexible
-
-  // https://stackoverflow.com/questions/49477547/setstate-of-an-array-of-objects-in-react
-  function setCompleted(task: Task) {
-    setTaskList()
+  function setCompleted(entry: Task | Journal | Mood) {
+    const completionEntry: CompletionEntry = {
+      entry: entry,
+      date: new Date(),
+    }
+    dispatch({
+      type: ActionType.AddCompletionEntry,
+      payload: completionEntry,
+    });
   }
 
-  useEffect(() => {
-    storeTaskList(taskList);
-  }, [taskList]);
+  const isToday = (someDate: Date) => {
+    const today = new Date()
+    return someDate.getDate() == today.getDate() &&
+      someDate.getMonth() == today.getMonth() &&
+      someDate.getFullYear() == today.getFullYear()
+  }
 
+  // TODO- have the date cutoff be dynamic and flexible
+  function taskIsCompleted(task: Task): boolean {
+    console.log(state.completionEntryList);
+    // check if there is an entry for that task in the completion list for TODAY
+    return state.completionEntryList.filter(entry =>
+      entry.entry === task && isToday(entry.date)
+    ).length !== 0;
+  }
 
-  const dailyTasks: Task[] = [meditationTask, exerciseTask];
+  const dailyTasks: Task[] = state.taskList;
   const tasksButtons = dailyTasks.map((task) => {
     return (
       <TouchableOpacity
@@ -116,7 +106,7 @@ export default function MainScreen() {
           alignSelf: "center",
           textTransform: "uppercase"
         }}>
-          {task.taskTitle}
+          {taskIsCompleted && task.taskTitle}
         </Text>
       </TouchableOpacity>
     )
