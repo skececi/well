@@ -10,10 +10,10 @@ import * as React from 'react';
 
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
-import ProfileScreen from '../screens/ProfileScreen';
-import MainScreen from '../screens/MainScreen';
-import { BottomTabParamList, ProfileTabParamList, MainTabParamList, HistoryTabParamList } from '../types/types';
-import HistoryScreen from "../screens/HistoryScreen";
+import ProfileScreen from '../components/ProfileScreen';
+import MainScreen from '../components/MainScreen';
+import { BottomTabParamList, ProfileTabParamList, MainTabParamList, HistoryTabParamList } from '../types/navigationTypes';
+import HistoryScreen from "../components/HistoryScreen";
 
 const BottomTab = createBottomTabNavigator<BottomTabParamList>();
 

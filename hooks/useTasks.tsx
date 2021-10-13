@@ -1,6 +1,6 @@
-import { useState, useEffect, useReducer } from 'react';
+import { useReducer } from 'react';
 import AsyncStorage from "@react-native-async-storage/async-storage";
-import { CompletionEntry, Task} from "../screens/MainScreen";
+import { CompletionEntry, Task, TaskCategory } from "../types/taskTypes";
 import { ActionMap } from "../types/actionMap";
 
 
@@ -27,14 +27,16 @@ async function loadInitStateFromStorage(): Promise<TaskState> {
 
 const meditationTask: Task = {
   id: 1,
-  taskTitle: "Meditate 5 minutes",
-  taskCategory: "Mental Health",
+  title: "Meditate",
+  duration: 5,
+  taskCategory: TaskCategory.mental,
 };
 
 const exerciseTask: Task = {
   id: 2,
-  taskTitle: "Exercise 15 minutes",
-  taskCategory: "Physical Health",
+  title: "Exercise",
+  duration: 15,
+  taskCategory: TaskCategory.physical,
 };
 
 const exampleTasks: Task[] = [meditationTask, exerciseTask];
@@ -63,6 +65,7 @@ export enum ActionType {
   DeleteTask = "DELETE_TASK",
   AddCompletionEntry = "ADD_COMPLETION_ENTRY",
   DeleteCompletionEntry = "DELETE_COMPLETION_ENTRY",
+  ResetCompletionEntryList = "RESET_COMPLETION_ENTRY_LIST",
 }
 
 type ActionPayload = {
@@ -70,6 +73,7 @@ type ActionPayload = {
   [ActionType.DeleteTask]: Task;
   [ActionType.AddCompletionEntry]: CompletionEntry;
   [ActionType.DeleteCompletionEntry]: CompletionEntry;
+  [ActionType.ResetCompletionEntryList]: undefined,
 }
 
 export type Action = ActionMap<ActionPayload>[keyof ActionMap<ActionPayload>];
@@ -96,7 +100,11 @@ function tasksReducer(state: TaskState, action: Action): TaskState {
         ...state,
         completionEntryList: state.completionEntryList.filter(element => element !== action.payload),
       };
-    // ... other actions ...
+    case ActionType.ResetCompletionEntryList:
+      return {
+        ...state,
+        completionEntryList: [],
+      }
     default:
       return state;
   }
