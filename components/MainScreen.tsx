@@ -148,6 +148,7 @@ export default function MainScreen() {
         return "\n" + e.entry.title + "---" + e.date.toDateString();
       })} </Text>
       {addTaskButton}
+      <Text>{JSON.stringify(state.taskList)}</Text>
       <AddTaskModal showAddTaskModal={showAddTaskModal} setShowAddTaskModal={setShowAddTaskModal}/>
     </View>
   );

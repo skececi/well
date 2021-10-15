@@ -81,6 +81,7 @@ export type Action = ActionMap<ActionPayload>[keyof ActionMap<ActionPayload>];
 function tasksReducer(state: TaskState, action: Action): TaskState {
   switch (action.type) {
     case ActionType.AddTask:
+      console.log("adding task");
       return {
         ...state,
         taskList: [...state.taskList, action.payload],

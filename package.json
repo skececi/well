@@ -19,6 +19,7 @@
     "@react-navigation/native": "~5.8.10",
     "@react-navigation/stack": "~5.12.8",
     "@reduxjs/toolkit": "^1.6.2",
+    "@vseslav/react-native-horizontal-picker": "^0.1.1",
     "expo": "~42.0.1",
     "expo-asset": "~8.3.2",
     "expo-constants": "~11.0.1",
@@ -36,6 +37,7 @@
     "react-native-reanimated": "~2.2.0",
     "react-native-safe-area-context": "3.2.0",
     "react-native-screens": "~3.4.0",
+    "react-native-smooth-picker": "^1.1.5",
     "react-native-uuid": "^2.0.1",
     "react-native-web": "~0.13.12"
   },
