@@ -4,27 +4,6 @@ import { CompletionEntry, Task, TaskCategory } from "../types/taskTypes";
 import { ActionMap } from "../types/actionMap";
 
 
-async function loadObjFromStorage(key: string) {
-  const loadedData = await AsyncStorage.getItem(key);
-  if (loadedData) {
-    console.log(loadedData);
-    return JSON.parse(loadedData);
-  }
-  return null;
-}
-
-async function saveObjToStorage(key: string, obj: any) {
-  try {
-    await AsyncStorage.setItem(key, JSON.stringify(obj));
-  } catch (e) {
-    console.error("saving error");
-  }
-}
-
-async function loadInitStateFromStorage(): Promise<TaskState> {
-  return await loadObjFromStorage("@saved_state");
-}
-
 const meditationTask: Task = {
   id: 1,
   title: "Meditate",
@@ -46,8 +25,8 @@ export default function useTasks() {
   // TODO https://blog.jscrambler.com/how-to-use-redux-persist-in-react-native-with-asyncstorage
   // Basically there is a built in way to persist data with redux, so this will avoid the async stuff
   // const initialState: TaskState = loadInitStateFromStorage();
-  const initialState = {
-    taskList: exampleTasks,
+  const initialState: TaskState = {
+    taskList: [],
     completionEntryList: [],
   }
 
@@ -61,6 +40,7 @@ export interface TaskState {
 }
 
 export enum ActionType {
+  OverrideState = "SET_STATE_FROM_STORAGE",
   AddTask = "ADD_TASK",
   DeleteTask = "DELETE_TASK",
   AddCompletionEntry = "ADD_COMPLETION_ENTRY",
@@ -69,6 +49,7 @@ export enum ActionType {
 }
 
 type ActionPayload = {
+  [ActionType.OverrideState]: TaskState;
   [ActionType.AddTask]: Task;
   [ActionType.DeleteTask]: Task;
   [ActionType.AddCompletionEntry]: CompletionEntry;
@@ -80,8 +61,12 @@ export type Action = ActionMap<ActionPayload>[keyof ActionMap<ActionPayload>];
 
 function tasksReducer(state: TaskState, action: Action): TaskState {
   switch (action.type) {
+    case ActionType.OverrideState:
+      // overwrite state with payload (for loading from storage)
+      return action.payload;
     case ActionType.AddTask:
       console.log("adding task");
+      console.log(state);
       return {
         ...state,
         taskList: [...state.taskList, action.payload],

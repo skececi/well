@@ -132,8 +132,6 @@ export default function MainScreen() {
     )
   });
 
-
-
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Main - This all needs to be styled :) </Text>
