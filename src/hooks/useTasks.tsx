@@ -4,21 +4,7 @@ import { CompletionEntry, Task, TaskCategory } from "../types/taskTypes";
 import { ActionMap } from "../types/actionMap";
 
 
-const meditationTask: Task = {
-  id: 1,
-  title: "Meditate",
-  duration: 5,
-  taskCategory: TaskCategory.mental,
-};
-
-const exerciseTask: Task = {
-  id: 2,
-  title: "Exercise",
-  duration: 15,
-  taskCategory: TaskCategory.physical,
-};
-
-const exampleTasks: Task[] = [meditationTask, exerciseTask];
+const exampleTasks: Task[] = [];
 
 
 export default function useTasks() {

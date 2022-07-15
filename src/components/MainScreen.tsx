@@ -108,7 +108,7 @@ export default function MainScreen() {
     return (
       <TouchableOpacity
         style={taskIsCompleted(task) ? styles.buttonCompleted : styles.buttonNotCompleted}
-        key={task.id}
+        key={task.createdDate}
         onPress={() => {
           if (taskIsCompleted(task)) {
             // TODO - uncomplete the task
@@ -125,7 +125,7 @@ export default function MainScreen() {
           textTransform: "uppercase"
         }}>
           {taskIsCompleted(task) && "✅"}
-          {task.title + " [" + task.duration + " min]"}
+          {task.title + " [" + " min]"}
 
         </Text>
       </TouchableOpacity>

@@ -12,8 +12,15 @@ import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 import ProfileScreen from '../components/ProfileScreen';
 import MainScreen from '../components/MainScreen';
-import { BottomTabParamList, ProfileTabParamList, MainTabParamList, HistoryTabParamList } from '../types/navigationTypes';
+import {
+  BottomTabParamList,
+  ProfileTabParamList,
+  MainTabParamList,
+  HistoryTabParamList,
+  NEWTHINGParamList
+} from '../types/navigationTypes';
 import HistoryScreen from "../components/HistoryScreen";
+import { NEWTHINGScreen } from "../components/NEWTHINGScreen";
 
 const BottomTab = createBottomTabNavigator<BottomTabParamList>();
 
@@ -25,7 +32,7 @@ export default function BottomTabNavigator() {
       initialRouteName="MainTab"
       tabBarOptions={{ activeTintColor: Colors[colorScheme].tint }}>
       <BottomTab.Screen
-        name="Profile Tab"
+        name="ProfileTab"
         component={ProfileTabNavigator}
         options={{
           tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
@@ -45,7 +52,15 @@ export default function BottomTabNavigator() {
           tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
         }}
       />
+      <BottomTab.Screen
+        name="NEWTHING"
+        component={NEWTHINGTabNavigator}
+        options={{
+          tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
+        }}
+      />
     </BottomTab.Navigator>
+
   );
 }
 
@@ -96,5 +111,19 @@ function HistoryTabNavigator() {
         options={{ headerTitle: 'History' }}
       />
     </HistoryTabStack.Navigator>
+  );
+}
+
+const NEWTHINGTabStack = createStackNavigator<NEWTHINGParamList>();
+
+function NEWTHINGTabNavigator() {
+  return (
+    <NEWTHINGTabStack.Navigator>
+      <NEWTHINGTabStack.Screen
+        name="NEWTHINGScreen"
+        component={NEWTHINGScreen}
+        options={{ headerTitle: 'NEWTHING' }}
+      />
+    </NEWTHINGTabStack.Navigator>
   );
 }

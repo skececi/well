@@ -32,7 +32,7 @@ const styles = StyleSheet.create({
   },
 });
 
-const AddTaskModal: FC<{
+export const AddTaskModal: FC<{
   showAddTaskModal: boolean,
   setShowAddTaskModal: Dispatch<SetStateAction<boolean>>,
 }> = ({
@@ -51,7 +51,7 @@ const AddTaskModal: FC<{
     console.log(data);
     const newCustomTask: Task = {
       ...data,
-      id: uuid.v4(),
+      createdDate: uuid.v4(),
       duration: parseInt(data.duration),
     };
     // id: number;

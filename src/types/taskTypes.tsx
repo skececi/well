@@ -3,12 +3,20 @@ export enum TaskCategory {
   mental = "Mental Health",
   leisure = "Leisure",
 }
-// TODO- make everything enums (+ custom string option)
+
+export enum TaskFrequency {
+  daily = "Daily",
+  weekly = "Weekly",
+  monthly = "Monthly",
+}
+
 export type Task = {
-  id: number;
+  createdDate: number;
   title: string;
-  duration?: number;
   taskCategory: TaskCategory | string; // string for custom category
+  frequency: TaskFrequency;
+  desiredCount: number;
+  currentCount: number;
 };
 
 export type Journal = {
