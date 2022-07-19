@@ -131,10 +131,10 @@ const taskHistoryState = atom({
 function getTaskEntryForCurrentPeriodIfItExists(taskHistory: ITaskPeriod[]) {
   // TODO optimize to only check the last entry if this is slow
   const historyCopy = taskHistory.slice().sort((a, b) => a.endDate.getTime() - b.endDate.getTime());
-  if (!historyCopy.at(-1)) {
-    return false;
+  if (!historyCopy.at(-1) || historyCopy.at(-1)!.endDate.getDate() < Date.now()) {
+    return undefined;
   } else {
-    return historyCopy.at(-1)!.endDate.getDate() > Date.now();
+    return historyCopy.at(-1);
   }
 }
 
@@ -156,9 +156,24 @@ function createNewTaskPeriod(tasks: Task[], frequency: TaskFrequency): ITaskPeri
   }
 }
 
+// TODO- determine whether this works when things are updated!
+export function useCurrentTaskPeriod() {
+  const [taskHistory, setTaskHistory] = useRecoilState(taskHistoryState);
+  const tasks = useRecoilValue(taskState);
+  return {
+    getCurrentTaskPeriod: () => getTaskEntryForCurrentPeriodIfItExists(taskHistory),
+    initiallyAppendNewPeriod: () => setTaskHistory([
+      ...taskHistory,
+      createNewTaskPeriod(tasks, TaskFrequency.weekly),
+    ]),
+    updateLatestTaskPeriod: (updatedLatestPeriod: ITaskPeriod) => setTaskHistory([...taskHistory.slice(0, -1), updatedLatestPeriod]),
+  }
+}
+
+
 const currentTaskPeriodState = selector({
   key: 'currentTaskPeriod',
-  get: ({ get }) => {
+  get: ({ get }): ITaskPeriod | undefined => {
     return getTaskEntryForCurrentPeriodIfItExists(get(taskHistoryState));
   },
   set: ({ get, set }, updatedCurrentTaskPeriod) => {
@@ -200,7 +215,7 @@ export const NEWTHINGScreen = () => {
     // TODO- load the initial data from storage
 
     if (!currentTaskPeriod) {
-      setCurrentTaskPeriod((curr: any) => [
+      setTaskHistory((curr: ITaskPeriod[]) => [
         ...curr,
         createNewTaskPeriod(tasks, TaskFrequency.weekly),
       ]);
@@ -214,12 +229,14 @@ export const NEWTHINGScreen = () => {
       someDate.getFullYear() == today.getFullYear()
   }
 
-  const sortedTasks = tasks.slice().sort((a, b) => a.createdDate - b.createdDate); // create a copy because the O.G. one is tied to Recoil state
-  const taskTable = sortedTasks.map((task) => {
-    const taskIsCompleted = task.currentCount >= task.desiredCount;
+  // const sortedTasks = currentTaskPeriod.slice().sort((a, b) => a.createdDate - b.createdDate); // create a copy because the O.G. one is tied to Recoil state
+  // @ts-ignore
+  const taskTable = currentTaskPeriod?.taskCompletions.map((taskCompletion) => {
+    const task = taskCompletion.task;
+    const taskIsCompleted = taskCompletion.completions >= taskCompletion.task.desiredCount;
     return (
       <View
-        key={task.createdDate}
+        key={taskCompletion.task.createdDate}
         style={{
           paddingBottom: 20,
         }}
@@ -228,20 +245,21 @@ export const NEWTHINGScreen = () => {
           {task.title + " " + task.desiredCount + "x " + task.frequency}
         </Text>
         <Text>
-          {"Progress || " + "X".repeat(task.currentCount)}
+          {"Progress || " + "X".repeat(taskCompletion.completions)}
         </Text>
         <Pressable
           style={{ ...styles.button, backgroundColor: taskIsCompleted ? "#16a34a" : "#64748b" }}
           key={task.createdDate}
           onPress={() => {
             if (!taskIsCompleted) {
-              setTasks((oldTaskList) => {
+              // TODO------
+              setCurrentTaskPeriod((oldTaskList: ITaskPeriod) => {
                 const otherTasks = oldTaskList.filter((t) => t.createdDate !== task.createdDate);
                 return [
                   ...otherTasks,
                   {
-                    ...task,
-                    currentCount: task.currentCount + 1,
+                    ...taskCompletion,
+                    currentCount: taskCompletion.currentCount + 1,
                   }
                 ]
               });
@@ -252,20 +270,20 @@ export const NEWTHINGScreen = () => {
           <Text style={{
             ...styles.text,
             padding: 10
-          }}>{task.currentCount < task.desiredCount ? "Complete an entry of this task" : "YAY TASK COMPLETED!"}</Text>
+          }}>{taskCompletion.currentCount < taskCompletion.desiredCount ? "Complete an entry of this task" : "YAY TASK COMPLETED!"}</Text>
         </Pressable>
 
         <Button
           title={"Remove Count"}
           onPress={() => {
-            if (task.currentCount > 0) {
+            if (taskCompletion.currentCount > 0) {
               setTasks((oldTaskList) => {
-                const otherTasks = oldTaskList.filter((t) => t.createdDate !== task.createdDate);
+                const otherTasks = oldTaskList.filter((t) => t.createdDate !== taskCompletion.createdDate);
                 return [
                   ...otherTasks,
                   {
-                    ...task,
-                    currentCount: task.currentCount - 1,
+                    ...taskCompletion,
+                    currentCount: taskCompletion.currentCount - 1,
                   }
                 ]
               });
