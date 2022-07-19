@@ -20,6 +20,7 @@
     "@react-navigation/stack": "~5.12.8",
     "@reduxjs/toolkit": "^1.6.2",
     "@vseslav/react-native-horizontal-picker": "^0.1.1",
+    "date-fns": "^2.28.0",
     "expo": "~42.0.1",
     "expo-asset": "~8.3.2",
     "expo-constants": "~11.0.1",

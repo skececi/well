@@ -16,7 +16,6 @@ export type Task = {
   taskCategory: TaskCategory | string; // string for custom category
   frequency: TaskFrequency;
   desiredCount: number;
-  currentCount: number;
 };
 
 export type Journal = {
