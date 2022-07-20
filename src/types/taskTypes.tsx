@@ -5,9 +5,9 @@ export enum TaskCategory {
 }
 
 export enum TaskFrequency {
-  daily = "Daily",
-  weekly = "Weekly",
-  monthly = "Monthly",
+  daily = "daily",
+  weekly = "weekly",
+  monthly = "monthly",
 }
 
 export type Task = {

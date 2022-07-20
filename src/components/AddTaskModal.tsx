@@ -1,11 +1,11 @@
 import { Alert, Button, Modal, Picker, Pressable, StyleSheet, TextInput } from "react-native";
-import { Text, TextProps, View } from "./Themed";
+import { Text, View } from "./Themed";
 import * as React from "react";
-import useTasks, { ActionType } from "../hooks/useTasks";
 import { Dispatch, FC, SetStateAction, useState } from "react";
-import { Task, TaskCategory } from "../types/taskTypes";
-import uuid from 'react-native-uuid';
-import { useForm, Controller } from "react-hook-form";
+import { Task, TaskCategory, TaskFrequency } from "../types/taskTypes";
+import { Controller, useForm } from "react-hook-form";
+import { useRecoilState, useSetRecoilState } from "recoil";
+import { currentTaskPeriodState, ITaskCompletions, ITaskPeriod, taskState } from "./NEWTHINGScreen";
 
 
 const styles = StyleSheet.create({
@@ -39,7 +39,9 @@ export const AddTaskModal: FC<{
   showAddTaskModal,
   setShowAddTaskModal,
 }) => {
-  const [state, dispatch] = useTasks();
+  const [tasks, setTasks] = useRecoilState(taskState);
+  const setCurrentTaskPeriod = useSetRecoilState(currentTaskPeriodState);
+  const [selectedFrequency, setSelectedFrequency] = useState(TaskFrequency.daily);
   const {
     control,
     handleSubmit,
@@ -51,15 +53,28 @@ export const AddTaskModal: FC<{
     console.log(data);
     const newCustomTask: Task = {
       ...data,
-      createdDate: uuid.v4(),
-      duration: parseInt(data.duration),
+      createdDate: Date.now(),
+      frequency: TaskFrequency.weekly, // enums aren't working
+      taskCategory: TaskCategory.mental,
     };
-    // id: number;
-    // title: string;
-    // duration?: number;
-    // taskCategory: TaskCategory | string; // string for custom category
+    setTasks((currTasks) => [
+      ...currTasks,
+      newCustomTask,
+    ]);
+    setCurrentTaskPeriod((currTaskPeriod: ITaskPeriod): ITaskPeriod => {
+      const newTaskCompletion: ITaskCompletions = {
+        task: newCustomTask,
+        completions: 0,
+      }
+      return {
+        ...currTaskPeriod,
+        taskCompletions: [
+          ...currTaskPeriod.taskCompletions,
+
+        ]
+      }
+    })
     console.log(newCustomTask);
-    dispatch({ type: ActionType.AddTask, payload: newCustomTask});
     reset();
     setShowAddTaskModal(false);
   }
@@ -75,12 +90,13 @@ export const AddTaskModal: FC<{
       }}
     >
       <View style={styles.centeredView}>
+        <Text>{JSON.stringify(tasks)}</Text>
         <Controller
           control={control}
           name="title"
           render={({field: {onChange, value, onBlur}}) => (
             <TextInput
-              placeholder="Daily Task Name"
+              placeholder={selectedFrequency + " Task Name"}
               value={value}
               onBlur={onBlur}
               onChangeText={value => onChange(value)}
@@ -95,10 +111,10 @@ export const AddTaskModal: FC<{
         />
         <Controller
           control={control}
-          name="duration"
+          name="desiredCount"
           render={({field: {onChange, value, onBlur}}) => (
             <TextInput
-              placeholder={"Duration (Minutes) - Optional"}
+              placeholder={"Goal count (" + selectedFrequency + ")"}
               value={value}
               onBlur={onBlur}
               onChangeText={onChange}
@@ -112,7 +128,31 @@ export const AddTaskModal: FC<{
             },
             pattern: {
               value: /^\d+$/,
-              message: "Duration must be a number",
+              message: "Frequency must be an integer",
+            },
+          }}
+        />
+        <Controller
+          control={control}
+          name="frequency"
+          render={({field: {onChange, value, onBlur}}) => (
+            <Picker
+              style={{width: 150, height: 180}}
+              selectedValue={value}
+              itemStyle={{color:'black', fontSize:26}}
+              onValueChange={(value: TaskFrequency) => {
+                onChange(value);
+                setSelectedFrequency(value);
+              }}>
+              {Object.values(TaskFrequency).map((value, i) => (
+                <Picker.Item label={value} value={i} key={i}/>
+              ))}
+            </Picker>
+          )}
+          rules={{
+            required: {
+              value: false,
+              message: 'Field is required!',
             },
           }}
         />
@@ -135,13 +175,9 @@ export const AddTaskModal: FC<{
               value: false,
               message: 'Field is required!',
             },
-            pattern: {
-              value: /^\d+$/,
-              message: "Duration must be a number",
-            },
           }}
         />
-        <Button disabled={!isValid} title='Add To Daily Flow' onPress={handleSubmit(onSubmit)}/>
+        <Button disabled={!isValid} title='Add Task to Weekly Goals' onPress={handleSubmit(onSubmit)}/>
 
         <Pressable onPress={() => {
           console.log("cancel")

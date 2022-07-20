@@ -1,5 +1,5 @@
 import * as React from 'react';
-import { Button, Pressable, StyleSheet, TouchableOpacity } from 'react-native';
+import { Button, Pressable, ScrollView, StyleSheet, TouchableOpacity } from 'react-native';
 
 import { Text, View } from './Themed';
 import { atom, DefaultValue, selector, useRecoilState, useRecoilValue, useSetRecoilState } from "recoil";
@@ -7,7 +7,8 @@ import { Task, TaskCategory, TaskFrequency } from "../types/taskTypes";
 import uuid from "react-native-uuid";
 import * as Haptics from "expo-haptics";
 import { endOfWeek, startOfWeek } from 'date-fns';
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import AddTaskModal from "./AddTaskModal";
 
 enum DayOfTheWeek {
   SUNDAY,
@@ -172,7 +173,7 @@ export function useCurrentTaskPeriod() {
 }
 
 
-const currentTaskPeriodState = selector({
+export const currentTaskPeriodState = selector({
   key: 'currentTaskPeriod',
   get: ({ get }): ITaskPeriod | undefined => {
     console.log("testing get curr task period state");
@@ -194,7 +195,7 @@ const currentTaskPeriodState = selector({
 })
 
 // this is the store of a user's preferences for what they want to do each week
-const taskState = atom({
+export const taskState = atom({
   key: 'taskState',
   default: exampleTasks as Task[],
 });
@@ -213,7 +214,12 @@ export const NEWTHINGScreen = () => {
   const [tasks, setTasks] = useRecoilState(taskState);
   const [taskHistory, setTaskHistory] = useRecoilState(taskHistoryState);
   const [currentTaskPeriod, setCurrentTaskPeriod] = useRecoilState(currentTaskPeriodState);
+
+  const [sortedTaskCompletions, setSortedTaskCompletions] = useState((currentTaskPeriod as ITaskPeriod)?.taskCompletions)
   const weekStart = useRecoilValue(weekStartState);
+
+  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
+
 
   useEffect(() => {
     // TODO- load the initial data from storage
@@ -224,29 +230,20 @@ export const NEWTHINGScreen = () => {
         createNewTaskPeriod(tasks, TaskFrequency.weekly, weekStart),
       ]);
     }
-  }, [])
+  },
+    []);
 
-  const isToday = (someDate: Date) => {
-    const today = new Date()
-    return someDate.getDate() == today.getDate() &&
-      someDate.getMonth() == today.getMonth() &&
-      someDate.getFullYear() == today.getFullYear()
-  }
+  useEffect(() => {
+    console.log("use effect currentTaskPeriod changed. should update the renderable sortedTaskCompletions")
+    setSortedTaskCompletions((currentTaskPeriod as ITaskPeriod)?.taskCompletions.slice().sort((a: ITaskCompletions, b: ITaskCompletions) => a.task.createdDate - b.task.createdDate));
+  },
+    [currentTaskPeriod]);
 
-  // @ts-ignore
-  const sortedTaskCompletions: ITaskCompletions[] = currentTaskPeriod?.taskCompletions.slice().sort((a: ITaskCompletions, b: ITaskCompletions) => a.task.createdDate - b.task.createdDate); // create a copy because the O.G. one is tied to Recoil state
   const taskTable = sortedTaskCompletions.map((taskCompletion: ITaskCompletions) => {
     console.log("testing " + taskCompletion)
     const task = taskCompletion.task;
     const taskIsCompleted = taskCompletion.completions >= taskCompletion.task.desiredCount;
     return (
-      <>
-        <View
-          style={{
-            borderBottomColor: 'red',
-            borderBottomWidth: StyleSheet.hairlineWidth,
-          }}
-        />
         <View
           key={taskCompletion.task.createdDate}
           style={{
@@ -311,17 +308,24 @@ export const NEWTHINGScreen = () => {
               }
             }} />
         </View>
-      </>
     )
-  })
+  });
 
+  const addTaskButton = (
+    <TouchableOpacity onPress={() => setShowAddTaskModal(true)}>
+      <Text>+ ADD TASK </Text>
+    </TouchableOpacity>
+  );
 
   return (
-    <View style={styles.container}>
+    <ScrollView>
       <Text>Tasks</Text>
       {taskTable}
-      <Text>{JSON.stringify(sortedTaskCompletions)}</Text>
-    </View>
+      {addTaskButton}
+      <AddTaskModal showAddTaskModal={showAddTaskModal} setShowAddTaskModal={setShowAddTaskModal}/>
+      <Text>{"sortedTaskCompletions" + JSON.stringify(sortedTaskCompletions)}</Text>
+      <Text>{JSON.stringify(tasks)}</Text>
+    </ScrollView>
   )
 };
 
