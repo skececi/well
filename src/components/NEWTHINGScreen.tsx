@@ -8,7 +8,6 @@ import uuid from "react-native-uuid";
 import * as Haptics from "expo-haptics";
 import { endOfWeek, startOfWeek } from 'date-fns';
 import { useEffect } from "react";
-import * as assert from "assert";
 
 enum DayOfTheWeek {
   SUNDAY,
@@ -71,6 +70,7 @@ const exerciseTask: Task = {
   desiredCount: 2,
 };
 
+// represents the tracked number of completions for one specific period of time
 export interface ITaskCompletions {
   task: Task,
   completions: number,
@@ -119,36 +119,36 @@ const exampleTaskHistory: ITaskPeriod[] = [
     endDate: new Date("2022-07-23"),
     taskCompletions: exampleTaskCompletions
   }
-
 ];
 
 // IMPORTANT: YOU MUST ONLY EVER *APPEND* TO THIS OR SOME LOGIC AROUND DATE CHECKING WILL BE MESSED UP
 const taskHistoryState = atom({
   key: 'taskHistoryState',
   default: exampleTaskHistory as ITaskPeriod[],
-})
+});
 
 function getTaskEntryForCurrentPeriodIfItExists(taskHistory: ITaskPeriod[]) {
   // TODO optimize to only check the last entry if this is slow
   const historyCopy = taskHistory.slice().sort((a, b) => a.endDate.getTime() - b.endDate.getTime());
-  if (!historyCopy.at(-1) || historyCopy.at(-1)!.endDate.getDate() < Date.now()) {
+  console.log("testio" + !historyCopy[historyCopy.length - 1])
+  if (!historyCopy[historyCopy.length - 1] || historyCopy[historyCopy.length - 1]!.endDate.getTime() < Date.now()) {
+    console.log(Date.now())
     return undefined;
   } else {
-    return historyCopy.at(-1);
+    return historyCopy[historyCopy.length - 1];
   }
 }
 
-function createNewTaskPeriod(tasks: Task[], frequency: TaskFrequency): ITaskPeriod {
+function createNewTaskPeriod(tasks: Task[], frequency: TaskFrequency, weekStart: DayOfTheWeek): ITaskPeriod {
   // TODO- switch on monthly, daily, etc
-  const weekStart = useRecoilValue(weekStartState);
   const startDate = startOfWeek(Date.now(), { weekStartsOn: weekStart });
   const endDate = endOfWeek(Date.now(), { weekStartsOn: weekStart });
-  const taskCompletions: ITaskCompletions[] = tasks.map((task) => {
-    return {
+  const taskCompletions: ITaskCompletions[] = tasks.map((task) => (
+    {
       task,
       completions: 0,
     }
-  })
+  ));
   return {
     startDate,
     endDate,
@@ -156,15 +156,16 @@ function createNewTaskPeriod(tasks: Task[], frequency: TaskFrequency): ITaskPeri
   }
 }
 
-// TODO- determine whether this works when things are updated!
+// // TODO- determine whether this works when things are updated!
 export function useCurrentTaskPeriod() {
   const [taskHistory, setTaskHistory] = useRecoilState(taskHistoryState);
+  const weekStart = useRecoilValue(weekStartState);
   const tasks = useRecoilValue(taskState);
   return {
     getCurrentTaskPeriod: () => getTaskEntryForCurrentPeriodIfItExists(taskHistory),
     initiallyAppendNewPeriod: () => setTaskHistory([
       ...taskHistory,
-      createNewTaskPeriod(tasks, TaskFrequency.weekly),
+      createNewTaskPeriod(tasks, TaskFrequency.weekly, weekStart),
     ]),
     updateLatestTaskPeriod: (updatedLatestPeriod: ITaskPeriod) => setTaskHistory([...taskHistory.slice(0, -1), updatedLatestPeriod]),
   }
@@ -174,6 +175,8 @@ export function useCurrentTaskPeriod() {
 const currentTaskPeriodState = selector({
   key: 'currentTaskPeriod',
   get: ({ get }): ITaskPeriod | undefined => {
+    console.log("testing get curr task period state");
+    console.log(get(taskHistoryState));
     return getTaskEntryForCurrentPeriodIfItExists(get(taskHistoryState));
   },
   set: ({ get, set }, updatedCurrentTaskPeriod) => {
@@ -210,6 +213,7 @@ export const NEWTHINGScreen = () => {
   const [tasks, setTasks] = useRecoilState(taskState);
   const [taskHistory, setTaskHistory] = useRecoilState(taskHistoryState);
   const [currentTaskPeriod, setCurrentTaskPeriod] = useRecoilState(currentTaskPeriodState);
+  const weekStart = useRecoilValue(weekStartState);
 
   useEffect(() => {
     // TODO- load the initial data from storage
@@ -217,7 +221,7 @@ export const NEWTHINGScreen = () => {
     if (!currentTaskPeriod) {
       setTaskHistory((curr: ITaskPeriod[]) => [
         ...curr,
-        createNewTaskPeriod(tasks, TaskFrequency.weekly),
+        createNewTaskPeriod(tasks, TaskFrequency.weekly, weekStart),
       ]);
     }
   }, [])
@@ -229,75 +233,94 @@ export const NEWTHINGScreen = () => {
       someDate.getFullYear() == today.getFullYear()
   }
 
-  // const sortedTasks = currentTaskPeriod.slice().sort((a, b) => a.createdDate - b.createdDate); // create a copy because the O.G. one is tied to Recoil state
   // @ts-ignore
-  const taskTable = currentTaskPeriod?.taskCompletions.map((taskCompletion) => {
+  const sortedTaskCompletions: ITaskCompletions[] = currentTaskPeriod?.taskCompletions.slice().sort((a: ITaskCompletions, b: ITaskCompletions) => a.task.createdDate - b.task.createdDate); // create a copy because the O.G. one is tied to Recoil state
+  const taskTable = sortedTaskCompletions.map((taskCompletion: ITaskCompletions) => {
+    console.log("testing " + taskCompletion)
     const task = taskCompletion.task;
     const taskIsCompleted = taskCompletion.completions >= taskCompletion.task.desiredCount;
     return (
-      <View
-        key={taskCompletion.task.createdDate}
-        style={{
-          paddingBottom: 20,
-        }}
-      >
-        <Text>
-          {task.title + " " + task.desiredCount + "x " + task.frequency}
-        </Text>
-        <Text>
-          {"Progress || " + "X".repeat(taskCompletion.completions)}
-        </Text>
-        <Pressable
-          style={{ ...styles.button, backgroundColor: taskIsCompleted ? "#16a34a" : "#64748b" }}
-          key={task.createdDate}
-          onPress={() => {
-            if (!taskIsCompleted) {
-              // TODO------
-              setCurrentTaskPeriod((oldTaskList: ITaskPeriod) => {
-                const otherTasks = oldTaskList.filter((t) => t.createdDate !== task.createdDate);
-                return [
-                  ...otherTasks,
-                  {
-                    ...taskCompletion,
-                    currentCount: taskCompletion.currentCount + 1,
-                  }
-                ]
-              });
-              Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-            }
-
-          }}>
-          <Text style={{
-            ...styles.text,
-            padding: 10
-          }}>{taskCompletion.currentCount < taskCompletion.desiredCount ? "Complete an entry of this task" : "YAY TASK COMPLETED!"}</Text>
-        </Pressable>
-
-        <Button
-          title={"Remove Count"}
-          onPress={() => {
-            if (taskCompletion.currentCount > 0) {
-              setTasks((oldTaskList) => {
-                const otherTasks = oldTaskList.filter((t) => t.createdDate !== taskCompletion.createdDate);
-                return [
-                  ...otherTasks,
-                  {
-                    ...taskCompletion,
-                    currentCount: taskCompletion.currentCount - 1,
-                  }
-                ]
-              });
-            }
+      <>
+        <View
+          style={{
+            borderBottomColor: 'red',
+            borderBottomWidth: StyleSheet.hairlineWidth,
           }}
         />
-      </View>
+        <View
+          key={taskCompletion.task.createdDate}
+          style={{
+            paddingBottom: 20,
+          }}
+        >
+          <Text>
+            {task.title + " " + task.desiredCount + "x " + task.frequency}
+          </Text>
+          <Text>
+            {"Progress || " + "X".repeat(taskCompletion.completions)}
+          </Text>
+          <Pressable
+            style={{ ...styles.button, backgroundColor: taskIsCompleted ? "#16a34a" : "#64748b" }}
+            key={task.createdDate}
+            onPress={() => {
+              if (!taskIsCompleted) {
+                // TODO------
+                // increment the current count of the pressed task
+                setCurrentTaskPeriod((currTaskPeriod: ITaskPeriod) => {
+                  const currTaskList = currTaskPeriod.taskCompletions;
+                  const otherTasks = currTaskList.filter((t) => t.task.createdDate !== task.createdDate);
+                  return {
+                    ...currTaskPeriod,
+                    taskCompletions: [
+                      ...otherTasks,
+                      {
+                        ...taskCompletion,
+                        completions: taskCompletion.completions + 1,
+                      },
+                    ],
+                  };
+                });
+                Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
+              }
+
+            }}>
+            <Text style={{
+              ...styles.text,
+              padding: 10
+            }}>{taskCompletion.completions < taskCompletion.task.desiredCount ? "Complete an entry of this task" : "YAY TASK COMPLETED!"}</Text>
+          </Pressable>
+
+          <Button
+            title={"Remove Count"}
+            onPress={() => {
+              if (taskCompletion.completions > 0) {
+                setCurrentTaskPeriod((currTaskPeriod: ITaskPeriod) => {
+                  const currTaskList = currTaskPeriod.taskCompletions;
+                  const otherTasks = currTaskList.filter((t) => t.task.createdDate !== task.createdDate);
+                  return {
+                    ...currTaskPeriod,
+                    taskCompletions: [
+                      ...otherTasks,
+                      {
+                        ...taskCompletion,
+                        completions: taskCompletion.completions - 1,
+                      },
+                    ],
+                  };
+                });
+              }
+            }} />
+        </View>
+      </>
     )
   })
 
 
   return (
     <View style={styles.container}>
+      <Text>Tasks</Text>
       {taskTable}
+      <Text>{JSON.stringify(sortedTaskCompletions)}</Text>
     </View>
   )
 };
@@ -306,21 +329,27 @@ export const NEWTHINGScreen = () => {
 // TODO- pull logic from AddTaskModal.tsx (unify with it)
 export const NewTaskModal = () => {
   const setTasks = useSetRecoilState(taskState);
+  // TODO get this from the user input
   const newTask: Task = {
     createdDate: Date.now(),
     title: "Exercise",
     taskCategory: TaskCategory.physical,
     frequency: TaskFrequency.weekly,
     desiredCount: 2,
-    currentCount: 0,
   };
+
   const addItem = () => {
-    setTasks((oldTodoList) => [
-      ...oldTodoList,
+    setTasks((oldTaskList) => [
+      ...oldTaskList,
       newTask,
     ]);
   };
 
+  return (
+    <Pressable onPress={addItem}>
+      <Text>Press me to add a new hardcoded task</Text>
+    </Pressable>
+  )
 }
 
 
