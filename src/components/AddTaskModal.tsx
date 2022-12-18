@@ -1,4 +1,5 @@
-import { Alert, Button, Modal, Picker, Pressable, StyleSheet, TextInput } from "react-native";
+import { Alert, Button, Modal, Pressable, StyleSheet, TextInput } from "react-native";
+import { Picker } from '@react-native-picker/picker';
 import { Text, View } from "./Themed";
 import * as React from "react";
 import { Dispatch, FC, SetStateAction, useState } from "react";
@@ -6,6 +7,7 @@ import { Task, TaskCategory, TaskFrequency } from "../types/taskTypes";
 import { Controller, useForm } from "react-hook-form";
 import { useRecoilState, useSetRecoilState } from "recoil";
 import { currentTaskPeriodState, ITaskCompletions, ITaskPeriod, taskState } from "./NEWTHINGScreen";
+// TODO- fix cyclic import, move the state to a separate file that gets imported here and in NewThingScreen
 
 
 const styles = StyleSheet.create({

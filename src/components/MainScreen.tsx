@@ -6,9 +6,7 @@ import AsyncStorage from '@react-native-async-storage/async-storage';
 import EditScreenInfo from './EditScreenInfo';
 import { Text, View } from './Themed';
 import { useEffect, useState } from "react";
-import useTasks, { ActionType } from "../hooks/useTasks";
 import AddTaskModal from "./AddTaskModal";
-import { CompletionEntry, Journal, Mood, Task } from "../types/taskTypes";
 
 
 const styles = StyleSheet.create({
@@ -66,88 +64,11 @@ const styles = StyleSheet.create({
 });
 
 export default function MainScreen() {
-  const [state, dispatch] = useTasks();
-  const [showAddTaskModal, setShowAddTaskModal] = useState(false);
-
-  // TODO- handling of completion of tasks - writing back to the datastructure
-  function setCompleted(entry: Task | Journal | Mood) {
-    const completionEntry: CompletionEntry = {
-      entry: entry,
-      date: new Date(),
-    }
-    dispatch({
-      type: ActionType.AddCompletionEntry,
-      payload: completionEntry,
-    });
-  }
-
-  const isToday = (someDate: Date) => {
-    const today = new Date()
-    return someDate.getDate() == today.getDate() &&
-      someDate.getMonth() == today.getMonth() &&
-      someDate.getFullYear() == today.getFullYear()
-  }
-
-  // TODO- have the date cutoff be dynamic and flexible
-  function taskIsCompleted(task: Task): boolean {
-    // check if there is an entry for that task in the completion list for TODAY
-    return state.completionEntryList.filter(entry =>
-      entry.entry == task && isToday(entry.date)
-    ).length !== 0;
-  }
-
-  const addTaskButton = (
-    <TouchableOpacity
-      onPress={() => setShowAddTaskModal(true)}
-    >
-      <Text>+ ADD TASK </Text>
-    </TouchableOpacity>
-  );
-
-  const tasksButtons = state.taskList.map((task) => {
-    return (
-      <TouchableOpacity
-        style={taskIsCompleted(task) ? styles.buttonCompleted : styles.buttonNotCompleted}
-        key={task.createdDate}
-        onPress={() => {
-          if (taskIsCompleted(task)) {
-            // TODO - uncomplete the task
-            return;
-          }
-          setCompleted(task);
-          Haptics.notificationAsync(Haptics.NotificationFeedbackType.Success);
-        }}>
-        <Text style={{
-          fontSize: 18,
-          color: "black",
-          fontWeight: "bold",
-          alignSelf: "center",
-          textTransform: "uppercase"
-        }}>
-          {taskIsCompleted(task) && "✅"}
-          {task.title + " [" + " min]"}
-
-        </Text>
-      </TouchableOpacity>
-    )
-  });
 
   return (
     <View style={styles.container}>
-      <Text style={styles.title}>Main - This all needs to be styled :) </Text>
+      <Text style={styles.title}>Will be deleted soon! </Text>
       <View style={styles.separator} lightColor="#eee" darkColor="rgba(255,255,255,0.1)"/>
-      {tasksButtons}
-      <Button
-        title={"Reset Tasks"}
-        onPress={() => dispatch({type: ActionType.ResetCompletionEntryList})}
-      />
-      <Text>{state.completionEntryList.map((e) => {
-        // @ts-ignore
-        return "\n" + e.entry.title + "---" + e.date.toDateString();
-      })} </Text>
-      {addTaskButton}
-      <Text>{JSON.stringify(state.taskList)}</Text>
-      <AddTaskModal showAddTaskModal={showAddTaskModal} setShowAddTaskModal={setShowAddTaskModal}/>
     </View>
   );
 }
