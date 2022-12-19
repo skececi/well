@@ -17,16 +17,16 @@ export default {
               ProfileScreen: 'profile',
             },
           },
-          MainTab: {
-            screens: {
-              MainTabScreen: 'main',
-            },
-          },
           History: {
             screens: {
               HistoryScreen: 'history',
             },
           },
+          Tasks: {
+            screens: {
+              TasksScreen: 'tasks',
+            }
+          }
         },
       },
       NotFound: '*',

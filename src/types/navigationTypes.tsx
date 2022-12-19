@@ -10,23 +10,18 @@ export type RootStackParamList = {
 
 export type BottomTabParamList = {
   ProfileTab: undefined;
-  MainTab: undefined;
   HistoryTab: undefined;
-  NEWTHING: undefined;
+  TasksTab: undefined;
 };
 
 export type ProfileTabParamList = {
   ProfileScreen: undefined;
 };
 
-export type MainTabParamList = {
-  MainScreen: undefined;
-};
-
 export type HistoryTabParamList = {
   HistoryScreen: undefined;
 };
 
-export type NEWTHINGParamList= {
-  NEWTHINGScreen: undefined;
+export type TasksParamList= {
+  TasksScreen: undefined;
 };

@@ -104,21 +104,6 @@ const exampleTaskHistory: ITaskPeriod[] = [
     endDate: new Date("2022-07-16"),
     taskCompletions: exampleTaskCompletions
   },
-  {
-    startDate: new Date("2022-07-10"),
-    endDate: new Date("2022-07-16"),
-    taskCompletions: exampleTaskCompletions
-  },
-  {
-    startDate: new Date("2022-07-17"),
-    endDate: new Date("2022-07-23"),
-    taskCompletions: exampleTaskCompletions
-  },
-  {
-    startDate: new Date("2022-12-11"), // TODO these need to become exact times (e.g. midnight start and 11:59:59pm end date)
-    endDate: new Date("2022-12-17"),
-    taskCompletions: exampleTaskCompletions
-  },
 ];
 
 function getTaskEntryForCurrentPeriod(taskHistory: ITaskPeriod[]) {
@@ -211,13 +196,7 @@ export default function useTasks() {
 
   const weekStart = useRecoilValue(weekStartState);
 
-  useEffect(() => {
-    // TODO- load the initial data from storage
-
-    
-  },
-    []);
-
+  // TODO- load the initial data from storage
 
   return { tasks, setTasks, taskHistory, setTaskHistory, currentTaskPeriod, setCurrentTaskPeriod }
 }

@@ -51,19 +51,20 @@ const styles = StyleSheet.create({
   - multiple set of goals for daily, weekly, monthly (right now only weekly works - fine for a bit)
   - history view
   - celebration for completion
-  - 
+  - Notifs
+  - Competitions :D
 */
 
 /* call when the app is loaded:
   1. Load the state from storage and pass into recoil state
   2. Check time period from last completed task history, and see if we need to store the current taskState into history and reset it
-  3.
+  3. 
  */
 function onLoad() {
   // TODO-
 }
 
-export const NEWTHINGScreen = () => {
+export const TasksScreen = () => {
   const { tasks, setTasks, taskHistory, setTaskHistory, currentTaskPeriod, setCurrentTaskPeriod } = useTasks();
   
   const [sortedTaskCompletions, setSortedTaskCompletions] = useState((currentTaskPeriod as ITaskPeriod)?.taskCompletions);

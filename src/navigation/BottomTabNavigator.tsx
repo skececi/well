@@ -11,16 +11,14 @@ import * as React from 'react';
 import Colors from '../constants/Colors';
 import useColorScheme from '../hooks/useColorScheme';
 import ProfileScreen from '../components/ProfileScreen';
-import MainScreen from '../components/MainScreen';
 import {
   BottomTabParamList,
   ProfileTabParamList,
-  MainTabParamList,
   HistoryTabParamList,
-  NEWTHINGParamList
+  TasksParamList
 } from '../types/navigationTypes';
 import HistoryScreen from "../components/HistoryScreen";
-import { NEWTHINGScreen } from "../components/NEWTHINGScreen";
+import { TasksScreen } from "../components/TasksScreen";
 
 const BottomTab = createBottomTabNavigator<BottomTabParamList>();
 
@@ -29,18 +27,11 @@ export default function BottomTabNavigator() {
 
   return (
     <BottomTab.Navigator
-      initialRouteName="MainTab"
+      initialRouteName="TasksTab"
       tabBarOptions={{ activeTintColor: Colors[colorScheme].tint }}>
       <BottomTab.Screen
         name="ProfileTab"
         component={ProfileTabNavigator}
-        options={{
-          tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
-        }}
-      />
-      <BottomTab.Screen
-        name="MainTab"
-        component={MainTabNavigator}
         options={{
           tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
         }}
@@ -53,8 +44,8 @@ export default function BottomTabNavigator() {
         }}
       />
       <BottomTab.Screen
-        name="NEWTHING"
-        component={NEWTHINGTabNavigator}
+        name="TasksTab"
+        component={TasksTabNavigator}
         options={{
           tabBarIcon: ({ color }) => <TabBarIcon name="ios-code" color={color} />,
         }}
@@ -86,20 +77,6 @@ function ProfileTabNavigator() {
   );
 }
 
-const MainTabStack = createStackNavigator<MainTabParamList>();
-
-function MainTabNavigator() {
-  return (
-    <MainTabStack.Navigator>
-      <MainTabStack.Screen
-        name="MainScreen"
-        component={MainScreen}
-        options={{ headerTitle: 'Main Tab' }}
-      />
-    </MainTabStack.Navigator>
-  );
-}
-
 const HistoryTabStack = createStackNavigator<HistoryTabParamList>();
 
 function HistoryTabNavigator() {
@@ -114,16 +91,16 @@ function HistoryTabNavigator() {
   );
 }
 
-const NEWTHINGTabStack = createStackNavigator<NEWTHINGParamList>();
+const TasksTabStack = createStackNavigator<TasksParamList>();
 
-function NEWTHINGTabNavigator() {
+function TasksTabNavigator() {
   return (
-    <NEWTHINGTabStack.Navigator>
-      <NEWTHINGTabStack.Screen
-        name="NEWTHINGScreen"
-        component={NEWTHINGScreen}
-        options={{ headerTitle: 'NEWTHING' }}
+    <TasksTabStack.Navigator>
+      <TasksTabStack.Screen
+        name="TasksScreen"
+        component={TasksScreen}
+        options={{ headerTitle: 'Tasks' }}
       />
-    </NEWTHINGTabStack.Navigator>
+    </TasksTabStack.Navigator>
   );
 }
