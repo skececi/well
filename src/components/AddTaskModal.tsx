@@ -3,10 +3,10 @@ import { Picker } from '@react-native-picker/picker';
 import { Text, View } from "./Themed";
 import * as React from "react";
 import { Dispatch, FC, SetStateAction, useState } from "react";
-import { Task, TaskCategory, TaskFrequency } from "../types/taskTypes";
 import { Controller, useForm } from "react-hook-form";
 import { useRecoilState, useSetRecoilState } from "recoil";
-import { currentTaskPeriodState, ITaskCompletions, ITaskPeriod, taskState } from "./NEWTHINGScreen";
+import useTasks, { ITaskCompletions, ITaskPeriod, Task, TaskCategory, TaskFrequency } from '../hooks/useTasks';
+
 // TODO- fix cyclic import, move the state to a separate file that gets imported here and in NewThingScreen
 
 
@@ -41,9 +41,9 @@ export const AddTaskModal: FC<{
   showAddTaskModal,
   setShowAddTaskModal,
 }) => {
-  const [tasks, setTasks] = useRecoilState(taskState);
-  const setCurrentTaskPeriod = useSetRecoilState(currentTaskPeriodState);
-  const [selectedFrequency, setSelectedFrequency] = useState(TaskFrequency.daily);
+
+  const { tasks, setTasks, taskHistory, setTaskHistory, currentTaskPeriod, setCurrentTaskPeriod } = useTasks();
+
   const {
     control,
     handleSubmit,
@@ -168,7 +168,7 @@ export const AddTaskModal: FC<{
               itemStyle={{color:'black', fontSize:26}}
               onValueChange={value => onChange(value)}>
               {Object.values(TaskCategory).map((value, i) => (
-                <Picker.Item label={value} value={i} key={i}/>
+                <Picker.Item  value={i} key={i}/>
               ))}
             </Picker>
           )}

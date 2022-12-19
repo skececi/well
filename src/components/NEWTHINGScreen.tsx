@@ -44,6 +44,16 @@ const styles = StyleSheet.create({
 });
 
 
+/* 
+  High level TODOs:
+  - Add task creation modal!
+  - design! (work w savanna)
+  - multiple set of goals for daily, weekly, monthly (right now only weekly works - fine for a bit)
+  - history view
+  - celebration for completion
+  - 
+*/
+
 /* call when the app is loaded:
   1. Load the state from storage and pass into recoil state
   2. Check time period from last completed task history, and see if we need to store the current taskState into history and reset it
@@ -157,6 +167,8 @@ export const NEWTHINGScreen = () => {
       <AddTaskModal showAddTaskModal={showAddTaskModal} setShowAddTaskModal={setShowAddTaskModal}/>
       <Text>{"sortedTaskCompletions" + JSON.stringify(sortedTaskCompletions)}</Text>
       <Text>{JSON.stringify(tasks)}</Text>
+      <Text>------------------------</Text>
+      <Text>{JSON.stringify(currentTaskPeriod)}</Text>
     </ScrollView>
   )
 };

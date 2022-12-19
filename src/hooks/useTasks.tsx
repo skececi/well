@@ -115,16 +115,42 @@ const exampleTaskHistory: ITaskPeriod[] = [
     taskCompletions: exampleTaskCompletions
   },
   {
-    startDate: new Date("2022-12-11"),
+    startDate: new Date("2022-12-11"), // TODO these need to become exact times (e.g. midnight start and 11:59:59pm end date)
     endDate: new Date("2022-12-17"),
     taskCompletions: exampleTaskCompletions
-  }
+  },
 ];
 
+function getTaskEntryForCurrentPeriod(taskHistory: ITaskPeriod[]) {
+  const historyCopy = taskHistory.slice().sort((a, b) => a.endDate.getTime() - b.endDate.getTime());
+  console.log('');
+  if (!historyCopy[historyCopy.length - 1] || historyCopy[historyCopy.length - 1]!.endDate.getTime() < Date.now()) {
+    console.log(Date.now())
+    return undefined;
+  } else {
+    return historyCopy[historyCopy.length - 1];
+  }
+}
+
+function createNewTaskPeriod(tasks: Task[], frequency: TaskFrequency, weekStart: DayOfTheWeek): ITaskPeriod {
+  // TODO- switch on monthly, daily, etc
+  const startDate = startOfWeek(Date.now(), { weekStartsOn: weekStart });
+  const endDate = endOfWeek(Date.now(), { weekStartsOn: weekStart });
+  const taskCompletions: ITaskCompletions[] = tasks.map((task) => (
+    {
+      task,
+      completions: 0,
+    }
+  ));
+  return {
+    startDate,
+    endDate,
+    taskCompletions,
+  }
+}
+
 /* TODO-
-   there are two issues which cause crashing rn (simple-ish to resolve)
-   1. the date is not properly accounting for Saturdays
-   2. the state doesn't AUTOMATICALLY create a new entry when there is no current task period in the "exampleTaskHistory" :)
+   1. the date is not properly accounting for Saturdays (need to change to EOD saturday and very beginning of sunday)
 */
 export default function useTasks() {
   // this is the store of a user's preferences for what they want to do each week
@@ -142,11 +168,28 @@ export default function useTasks() {
   // time based
   const currentTaskPeriodState = selector({
     key: 'currentTaskPeriod',
-    get: ({ get }): ITaskPeriod | undefined => {
-      console.log("testing get curr task period state");
+    get: ({ get }): ITaskPeriod => {
+      console.log("get curr task period state");
       console.log(get(taskHistoryState));
-      return getTaskEntryForCurrentPeriod(get(taskHistoryState));
-      // TODO- this function cannot return undefined! Create an empty task period if one doesn't exist
+      const currentTaskHistory = get(taskHistoryState);
+      
+      if (!getTaskEntryForCurrentPeriod(currentTaskHistory)) {
+        // add new task entry to the overall state and return latest
+        console.log("BEFORE ADDING CURRENT PERIOD: " + JSON.stringify(get(taskHistoryState)));
+
+        // TODO- this is not working?
+        setTaskHistory((curr: ITaskPeriod[]) => [
+          ...curr,
+          createNewTaskPeriod(tasks, TaskFrequency.weekly, weekStart),
+        ]);
+        console.log("AFTER ADDING CURRENT PERIOD: " + JSON.stringify(get(taskHistoryState)));
+        console.log("LAST ELEMENT: " + JSON.stringify(get(taskHistoryState)[get(taskHistoryState).length - 1]));
+        // return last element (i.e. the one we just created) -- WILL THIS WORK?
+        return currentTaskHistory[currentTaskHistory.length - 1]; 
+      } else {
+        // safe to add ! because we just checked above if it was undefined
+        return getTaskEntryForCurrentPeriod(currentTaskHistory)!;
+      }
     },
     set: ({ get, set }, updatedCurrentTaskPeriod) => {
       // Note that this simply updates the last entry - the logic for creating a new entry each week lives elsewhere!
@@ -168,58 +211,10 @@ export default function useTasks() {
 
   const weekStart = useRecoilValue(weekStartState);
 
-  function getTaskEntryForCurrentPeriod(taskHistory: ITaskPeriod[]) {
-    const historyCopy = taskHistory.slice().sort((a, b) => a.endDate.getTime() - b.endDate.getTime());
-    console.log('');
-    if (!historyCopy[historyCopy.length - 1] || historyCopy[historyCopy.length - 1]!.endDate.getTime() < Date.now()) {
-      // TODO- this is off by 1 day (e.g. it needs to include the last saturday of the week (breaks on saturday))
-      console.log(Date.now())
-      // create a new blank taskEntry
-      return
-      return undefined; // TODO- need to create an empty task history entry when the next week rolls over
-    } else {
-      return historyCopy[historyCopy.length - 1];
-    }
-  }
-
-  function createNewTaskPeriod(tasks: Task[], frequency: TaskFrequency, weekStart: DayOfTheWeek): ITaskPeriod {
-    // TODO- switch on monthly, daily, etc
-    const startDate = startOfWeek(Date.now(), { weekStartsOn: weekStart });
-    const endDate = endOfWeek(Date.now(), { weekStartsOn: weekStart });
-    const taskCompletions: ITaskCompletions[] = tasks.map((task) => (
-      {
-        task,
-        completions: 0,
-      }
-    ));
-    return {
-      startDate,
-      endDate,
-      taskCompletions,
-    }
-  }
-
-  // // TODO- determine whether this works when things are updated!
-  function getCurrentTaskPeriod() {
-    return {
-      getCurrentTaskPeriod: () => getTaskEntryForCurrentPeriod(taskHistory),
-      initiallyAppendNewPeriod: () => setTaskHistory([
-        ...taskHistory,
-        createNewTaskPeriod(tasks, TaskFrequency.weekly, weekStart),
-      ]),
-      updateLatestTaskPeriod: (updatedLatestPeriod: ITaskPeriod) => setTaskHistory([...taskHistory.slice(0, -1), updatedLatestPeriod]),
-    }
-  }
-
   useEffect(() => {
     // TODO- load the initial data from storage
 
-    if (!currentTaskPeriod) {
-      setTaskHistory((curr: ITaskPeriod[]) => [
-        ...curr,
-        createNewTaskPeriod(tasks, TaskFrequency.weekly, weekStart),
-      ]);
-    }
+    
   },
     []);
 
